@@ -13,6 +13,7 @@ import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SectionListRenderer
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.YTItem
+import com.zionhuang.innertube.models.filterExplicit
 import com.zionhuang.innertube.models.oddElements
 
 data class ArtistSection(
@@ -26,6 +27,19 @@ data class ArtistPage(
     val sections: List<ArtistSection>,
     val description: String?,
 ) {
+    fun filterExplicit(enabled: Boolean) =
+        if (enabled) {
+            copy(sections = sections.mapNotNull {
+                it.copy(
+                    items = it.items
+                        .filterExplicit()
+                        .ifEmpty {
+                            return@mapNotNull null
+                        }
+                )
+            })
+        } else this
+
     companion object {
         fun fromSectionListRendererContent(content: SectionListRenderer.Content): ArtistSection? {
             return when {
@@ -40,7 +54,7 @@ data class ArtistPage(
                 title = renderer.title?.runs?.firstOrNull()?.text ?: return null,
                 items = renderer.contents?.mapNotNull {
                     fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer)
-                } ?: return null,
+                }?.ifEmpty { null } ?: return null,
                 moreEndpoint = renderer.title.runs.firstOrNull()?.navigationEndpoint?.browseEndpoint
             )
         }
@@ -52,7 +66,7 @@ data class ArtistPage(
                     it.musicTwoRowItemRenderer?.let { renderer ->
                         fromMusicTwoRowItemRenderer(renderer)
                     }
-                },
+                }.ifEmpty { null } ?: return null,
                 moreEndpoint = renderer.header.musicCarouselShelfBasicHeaderRenderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint
             )
         }
@@ -109,7 +123,7 @@ data class ArtistPage(
                         browseId = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
                         playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content
                             ?.musicPlayButtonRenderer?.playNavigationEndpoint
-                            ?.watchPlaylistEndpoint?.playlistId ?: return null,
+                            ?.anyWatchEndpoint?.playlistId ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                         artists = null,
                         year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),

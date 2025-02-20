@@ -1,6 +1,5 @@
 package com.zionhuang.music.ui.screens
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,7 +22,6 @@ import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.ArtistItem
 import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SongItem
-import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
@@ -43,7 +41,7 @@ import com.zionhuang.music.ui.menu.YouTubeSongMenu
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.viewmodels.YouTubeBrowseViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YouTubeBrowseScreen(
     navController: NavController,
@@ -132,7 +130,7 @@ fun YouTubeBrowseScreen(
                                     if (item.id == mediaMetadata?.id) {
                                         playerConnection.player.togglePlayPause()
                                     } else {
-                                        playerConnection.playQueue(YouTubeQueue(WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
+                                        playerConnection.playQueue(YouTubeQueue.radio(item.toMediaMetadata()))
                                     }
                                 }
 
@@ -141,7 +139,7 @@ fun YouTubeBrowseScreen(
                                 is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                             }
                         }
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
         }
